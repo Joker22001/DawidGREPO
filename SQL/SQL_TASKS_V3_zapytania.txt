@@ -1,0 +1,263 @@
+/*
+	Zadanie 1. Wyświetl 10 najlepszych klientów (złożyli najwięcej zamówień). 
+*/
+USE AdventureWorks2019
+	SELECT top 10 CustomerID,count(*) "ilosc zamowien"
+	FROM Sales.SalesOrderHeader
+	group by CustomerID
+	order  by 2 desc
+
+
+
+/*
+	Zadanie 2. Wyświetl 10 klientów, którzy zlożyli najnowsze zamówienia.
+*/
+	SELECT top 10 CustomerID
+	FROM Sales.SalesOrderHeader
+	order by OrderDate desc
+
+
+
+
+/*
+	Zadanie 3. Wyświetl 10 klientów z najdłuższym czasem dostawy zamówienia (różnica OrderDate oraz ShipDate).
+*/
+	SELECT top 10 DATEDIFF(day,orderdate,ShipDate) Days_before_delivery,CustomerID
+	FROM Sales.SalesOrderHeader
+	order by 1 desc
+
+
+
+
+
+/*
+	Zadanie 4. Wyświetl najdłuższy czas dostawy oraz sumę wartości zamówień (SumTotal) - dla poszczególnych klientów.
+*/
+	SELECT  CustomerID,max(DATEDIFF(day,orderdate,ShipDate)) MAX_days_before_delivery,sum(subtotal) SumTotal
+	FROM Sales.SalesOrderHeader
+	group by CustomerID
+
+
+
+
+
+/*
+	Zadanie 5. Wyświetl liczbę zamówień składanych w poszczególnych latach, posortuj wg liczby zamówień rosnąco.
+*/
+	SELECT  year(orderdate) year,count(*) order_amount
+	FROM Sales.SalesOrderHeader
+	group by year(orderdate)
+	order by 2 asc
+
+
+
+
+
+/*
+	Zadanie 6. Wyświetl liczbę zamówień składanych w poszczególnych latach przez poszczególnych klientów,
+	posortuj wg liczby zamówień rosnąco.
+*/
+	SELECT  year(orderdate) year,CustomerID,count(*) order_amount
+	FROM Sales.SalesOrderHeader
+	group by year(orderdate),CustomerID
+	order by 3 asc
+/*
+	Zadanie 7. Wyświetl liczbę filmów przypisanych do poszczególnych języków.
+	Wyświetl tylko te języki, do których jest przypisanych więcej niż 1000 filmów, posortuj po liczbie filmów malejąco.
+*/
+  	select JezykOryginalny,count(*) ilosc_filmow
+	from dbo.film
+	group by JezykOryginalny
+	having count(*) > 1000
+	order by 2 desc;
+
+
+
+
+/*
+	Zadanie 8. Wyświetl liczbę premier w poszczególnych latach.
+	Wyświetl tylko te lata, w których było więcej niż 800 premier, posortuj po liczbie premier malejąco.
+*/
+  	select year(premiera) rok,count(*) liczba_premier
+	from dbo.film
+	group by year(premiera)
+	having count(*) > 800
+	order by 2 desc
+
+/*
+	Zadanie 9. Wyświetl średni czas trwania filmów (as AvgCzasTrwania) w językach polskim, angielskim i francuskim,
+	które miały premierę po roku 2000, grupując wyniki według języka oryginalnego i roku premiery.
+*/
+	SELECT JezykOryginalny,year(premiera),avg(CzasTrwaniaMin) AvgCzasTrwania 
+	FROM Film
+	where JezykOryginalny in ('pl','en','fr') and year(premiera) > 2000
+	group by JezykOryginalny, year(premiera)
+
+
+
+/*
+	Zadanie 10. Wyświetl średni czas trwania filmów (as AvgCzasTrwania) w językach polskim, angielskim i francuskim,
+	które miały premierę po roku 2000, grupując wyniki według języka oryginalnego i roku premiery (as Rok),
+	a także dodając sumy częściowe i całkowite za pomocą ROLLUP.
+*/
+	SELECT JezykOryginalny,year(premiera) rok ,avg(CzasTrwaniaMin) AvgCzasTrwania 
+	FROM Film
+	where JezykOryginalny in ('pl','en','fr') and year(premiera) > 2000
+	group by rollup(JezykOryginalny, year(premiera))
+
+
+
+/*
+	Zadanie 11. Wyświetl średni czas trwania filmów (as AvgCzasTrwania) w językach polskim, angielskim i francuskim,
+	które miały premierę po roku 2000, grupując wyniki według języka oryginalnego i roku premiery,
+	a także dodając wszystkie możliwe kombinacje grupowania za pomocą CUBE.
+*/
+	SELECT JezykOryginalny,year(premiera) rok ,avg(CzasTrwaniaMin) AvgCzasTrwania 
+	FROM Film
+	where JezykOryginalny in ('pl','en','fr') and year(premiera) > 2000
+	group by cube(JezykOryginalny, year(premiera))
+
+
+
+/*
+	Zadanie 12. Wyświetl średni czas trwania filmów w językach polskim, angielskim i francuskim,
+	które miały premierę po roku 2000, grupując wyniki według języka oryginalnego i roku premiery,
+	zaprezentuj Rok w wierszach, a języki w kolumnach za pomocą PIVOT.
+*/
+	select 
+	rok,
+	[pl],
+	[en],
+	[fr]
+	from (
+	SELECT JezykOryginalny,year(premiera) rok ,CzasTrwaniaMin 
+	FROM dbo.Film
+	where year(premiera)>2000) as SourceTable
+	PIVOT
+	(
+	avg(CzasTrwaniaMin) 
+	for jezykoryginalny in ([pl],[en],[fr])
+	) as PivotTable
+	order by 1;
+
+
+
+/*
+	Zadanie 13. Wyświetl liczbę wszystkich produktów (wierszy w Production.Product). Alias Cnt w tym oraz kolejnych zadaniach.
+*/
+	SELECT count(*) cnt 
+	FROM Production.Product
+
+
+/*
+	Zadanie 14. Wyświetl liczbę wszystkich produktów koloru niebieskiego.
+*/
+	SELECT count(*) cnt 
+	FROM Production.Product
+	where Color = 'blue'
+
+/*
+	Zadanie 15. Wyświetl liczbę produktów przypisanych do poszczególnych kolorów.
+*/
+	SELECT color,count(*) cnt 
+	FROM Production.Product
+	group by color
+
+/*
+	Zadanie 16. Wyświetl liczbę produktów przypisanych do kolorów, które zaczynają się na litery B lub S.
+*/
+	SELECT color,count(*) cnt 
+	FROM Production.Product
+	where color like 'B%' or color like 'S%'
+	group by color
+
+/*
+	Zadanie 17. Wyświetl liczbę produktów poszczególnych rozmiarów, pomijając produkty bez przypisanego rozmiaru.
+*/
+	SELECT size,count(*) cnt 
+	FROM Production.Product
+	where size is not null
+	group by size
+
+/*
+	Zadanie 18. Wyświetl najwyższą cenę produktów poszczególnych rozmiarów (alias MaxPrice).
+*/
+	SELECT size,max(ListPrice) MaxPrice 
+	FROM Production.Product
+	group by size
+
+/*
+	Zadanie 19. Wyświetl średnią cenę produktów poszczególnych rozmiarów (alias AvgPrice).
+*/
+	SELECT size,avg(ListPrice) AvgPrice 
+	FROM Production.Product
+	group by size
+
+/*
+	Zadanie 20. Wyświetl liczbę i średnią cenę produktów przypisanych do poszczególnych kolorów i rozmiarów.
+*/
+	SELECT size,color,count(*) cnt,avg(ListPrice) AvgPrice 
+	FROM Production.Product
+	group by size,color
+
+/*
+	Zadanie 21. Wyświetl liczbę produktów przypisanych do poszczególnych kolorów,
+	ogranicz wynik do tych produktów, których jest ponad 50.
+*/
+	SELECT color,count(*) cnt
+	FROM Production.Product
+	group by color
+	having count(*) > 50
+
+/*
+	Zadanie 22. Wyświetl średnią cenę produktów poszczególnych rozmiarów
+	ogranicz wynik do tych produktów, których średnia cena jest ponad 1000.
+*/
+	SELECT size,avg(ListPrice) AvgPrice
+	FROM Production.Product
+	group by size
+	having avg(ListPrice) > 1000
+
+/*
+	Zadanie 23. Wyświetl liczbę produktów przypisanych do poszczególnych
+	podkategorii (ProductSubcategoryID) i określonych kolorów.
+*/
+	SELECT ProductSubcategoryID,color,count(*) cnt
+	FROM Production.Product
+	group by ProductSubcategoryID,color
+
+/*
+	Zadanie 24. Dodaj do poprzedniego zapytania operator ROLLUP. Posortuj po kolumnach jak w grupowaniu.
+*/
+	SELECT ProductSubcategoryID,color,count(*) cnt
+	FROM Production.Product
+	group by rollup(ProductSubcategoryID,color)
+	order by 1,2
+
+/*
+	Zadanie 25. Wyświetl liczbę produktów przypisanych do poszczególnych kolorów.
+*/
+	SELECT color,count(*) cnt
+	FROM Production.Product
+	group by color
+
+/*
+	Zadanie 26. Korzystając z operatora PIVOT - wyświetl liczbę produktów
+	poszczególnych kolorów (w wierszach) i rozmiarów: S, M, L, XL (w kolumnach).
+*/
+	SELECT 
+	color,
+	[S],
+	[M],
+	[L],
+	[XL]
+	from
+	(
+	select color,size,ProductID
+	from Production.Product
+	) as SourceTable
+	PIVOT
+	(
+	count(productid)
+	for size in ([S],[M],[L],[XL])
+	) as PivotTable;
